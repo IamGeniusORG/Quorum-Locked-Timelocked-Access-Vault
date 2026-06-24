@@ -45,11 +45,34 @@ Under the hood, this contract was written with advanced Solidity optimizations t
 
 ---
 
-## 🛠 How to Test & Deploy
+## 🛠 How to Test & Deploy (Step-by-Step Guide)
 
-You can test this right now in your browser using the [Remix IDE](https://remix.ethereum.org/).
+You can easily test this entire lifecycle right in your browser using the [Remix IDE](https://remix.ethereum.org/) without needing to install any software! 
 
-1. Paste `QuorumTimelockVault.sol` into Remix.
-2. Compile using Solidity `0.8.24` or higher.
-3. **Deploy** by passing in an array of trusted wallet addresses, your required quorum percentage (e.g., `66`), your secret message, and the timelock delays in seconds.
-4. **Interact:** Use `submitReleaseProposal` to start a vote, use `approveProposal` from a different wallet to cast a vote, wait for the timelock to expire, and finally call `executeRelease` to unlock the vault!
+### 1. Setup and Compilation
+1. **Clone the Repo:** Copy the `QuorumTimelockVault.sol` code from this repository.
+2. **Open Remix:** Go to [remix.ethereum.org](https://remix.ethereum.org/) and create a new file named `QuorumTimelockVault.sol` in your workspace. Paste the code inside.
+3. **Compile:** Click on the "Solidity Compiler" tab on the far left. Set the compiler version to `0.8.24` (or higher) and click the big blue **Compile** button.
+
+### 2. Deploying the Vault
+1. Click the **"Deploy & Run Transactions"** tab on the left.
+2. Ensure your Environment is set to **Remix VM**.
+3. Right next to the orange "Deploy" button, click the **small down arrow (chevron)** to open the deployment configuration boxes.
+4. Fill in the parameters to set up your Vault:
+   * **`_keyholders`**: Copy three addresses from your Remix "Account" dropdown at the top of the screen and paste them as an array. *(Example: `["0x5B3...", "0xAb8...", "0x4B2..."]`)*.
+   * **`_quorumPercentage`**: Type `66` (This means 2 out of your 3 keyholders must vote to unlock it).
+   * **`_secretPayload`**: Type `"MySecretMessage"` (Don't forget the quotes!).
+   * **`_votingPeriodSeconds`**: Type `30` (Voters will have 30 seconds to cast their vote).
+   * **`_executionDelaySeconds`**: Type `30` (After voting passes, the vault remains locked for 30 seconds).
+   * **`_gracePeriodSeconds`**: Type `300` (The community has 5 minutes to extract the secret before the proposal expires).
+5. Click the blue **Transact** button. Your contract is now live under "Deployed Contracts" at the bottom left!
+
+### 3. Interacting & Bypassing the Timelock
+*Expand your deployed contract by clicking the arrow next to it.*
+
+1. **Submit a Proposal:** Using the *first* account in your Account dropdown, select `submitReleaseProposal` from the function dropdown and click **Transact**. This creates Proposal ID `1`. *(The 30-second voting clock starts now!)*
+2. **Cast the Deciding Vote:** Quickly switch your Account dropdown to the *second* address in your list. Select `approveProposal`, type `1` into the input box, and hit **Transact**. You now have 2 out of 3 votes (66% Quorum met!).
+3. **Wait for the Timelock:** Since we set the execution delay to 30 seconds, you must wait exactly 30 seconds from the end of the voting period. If you try to unlock it early, the vault will block you with a `TimelockActive` error.
+4. **Execute and Unlock:** Once the time has passed, select `executeRelease`, type `1` in the box, and click **Transact**.
+
+🎉 **Boom!** Check your transaction logs at the bottom of the screen. You will see a `PayloadReleased` event outputting your hidden `"MySecretMessage"` string!
